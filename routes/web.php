@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Personal\Liked\DeleteController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -15,12 +16,30 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::group(['namespace' => 'App\Http\Controllers\Main'], function () {
-    Route::get('/', IndexController::class);
+    Route::get('/', IndexController::class)->name('main.index');
 });
 
-Route::group(['namespace' => 'App\Http\Controllers', 'prefix' => 'admin', 'middleware' => ['auth', 'admin']], function () {
+Route::group(['namespace' => 'App\Http\Controllers', 'prefix' => 'personal', 'middleware' => ['auth', 'verified']], function () {
+    Route::group(['namespace' => 'Personal\Main', 'prefix' => 'main'], function () {
+        Route::get('/', 'IndexController')->name('main.index');
+    });
+
+    Route::group(['namespace' => 'Personal\Liked', 'prefix' => 'liked'], function () {
+        Route::get('/', IndexController::class)->name('liked.index');
+        Route::delete('/{post}', DeleteController::class)->name('liked.delete');
+    });
+
+    Route::group(['namespace' => 'Personal\Comment', 'prefix' => 'comments'], function () {
+        Route::get('/', 'IndexController')->name('comment.index');
+        Route::get('/{comment}/edit', 'EditController')->name('comment.edit');
+        Route::patch('/{comment}', 'UpdateController')->name('comment.update');
+        Route::delete('/{comment}', 'DeleteController')->name('comment.delete');
+    });
+});
+
+Route::group(['namespace' => 'App\Http\Controllers', 'prefix' => 'admin', 'middleware' => ['auth', 'admin', 'verified']], function () {
     Route::group(['namespace' => 'Admin\Main'], function () {
-        Route::get('/', IndexController::class);
+        Route::get('/', IndexController::class)->name('main.index');
     });
 
     Route::group(['namespace' => 'Admin\Post', 'prefix' => 'posts'], function () {
@@ -64,5 +83,5 @@ Route::group(['namespace' => 'App\Http\Controllers', 'prefix' => 'admin', 'middl
     });
 });
 
-Auth::routes();
+Auth::routes(['verify' => true]);
 
